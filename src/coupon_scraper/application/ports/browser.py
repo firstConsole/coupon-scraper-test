@@ -14,8 +14,6 @@ if TYPE_CHECKING:
 
 
 class ChallengeKind(StrEnum):
-    """Какую проверку показал сайт"""
-
     TURNSTILE = "turnstile"
     RECAPTCHA = "recaptcha"
     HCAPTCHA = "hcaptcha"
@@ -79,7 +77,7 @@ class PageSession(Protocol):
 
 class BrowserRuntime(Protocol):
     def session(self, lease: ProxyLease) -> AsyncSession:
-        """Сессия под конкретный адрес, с личностью под его географию."""
+        """Сессия под конкретный адрес"""
         ...
 
     async def recycle(self, lease: ProxyLease) -> None:
@@ -88,8 +86,6 @@ class BrowserRuntime(Protocol):
 
 
 class AsyncSession(Protocol):
-    """Асинхронный контекст, отдающий страницу"""
-
     async def __aenter__(self) -> PageSession: ...
 
     async def __aexit__(
@@ -97,4 +93,4 @@ class AsyncSession(Protocol):
         exc_type: type[BaseException] | None,
         exc: BaseException | None,
         traceback: TracebackType | None,
-    ) -> None: ...
+    ) -> bool | None: ...
