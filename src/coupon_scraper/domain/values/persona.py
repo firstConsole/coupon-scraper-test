@@ -10,17 +10,71 @@ from coupon_scraper.domain.values.geo import Country
 
 COUNTRY_TIMEZONES: Final[MappingProxyType[str, frozenset[str]]] = MappingProxyType(
     {
-        "BR": frozenset({"America/Sao_Paulo", "America/Manaus", "America/Fortaleza"}),
-        "CA": frozenset({"America/Toronto", "America/Vancouver", "America/Halifax"}),
+        # СНГ
+        "AM": frozenset({"Asia/Yerevan"}),
+        "AZ": frozenset({"Asia/Baku"}),
+        "BY": frozenset({"Europe/Minsk"}),
+        "GE": frozenset({"Asia/Tbilisi"}),
+        "KG": frozenset({"Asia/Bishkek"}),
+        "KZ": frozenset(
+            {
+                "Asia/Almaty",
+                "Asia/Aqtau",
+                "Asia/Aqtobe",
+                "Asia/Atyrau",
+                "Asia/Oral",
+                "Asia/Qostanay",
+                "Asia/Qyzylorda",
+            }
+        ),
+        "MD": frozenset({"Europe/Chisinau"}),
+        "RU": frozenset(
+            {
+                "Europe/Kaliningrad",
+                "Europe/Moscow",
+                "Europe/Kirov",
+                "Europe/Volgograd",
+                "Europe/Astrakhan",
+                "Europe/Saratov",
+                "Europe/Ulyanovsk",
+                "Europe/Samara",
+                "Asia/Yekaterinburg",
+                "Asia/Omsk",
+                "Asia/Novosibirsk",
+                "Asia/Barnaul",
+                "Asia/Tomsk",
+                "Asia/Novokuznetsk",
+                "Asia/Krasnoyarsk",
+                "Asia/Irkutsk",
+                "Asia/Chita",
+                "Asia/Yakutsk",
+                "Asia/Khandyga",
+                "Asia/Vladivostok",
+                "Asia/Ust-Nera",
+                "Asia/Magadan",
+                "Asia/Sakhalin",
+                "Asia/Srednekolymsk",
+                "Asia/Kamchatka",
+                "Asia/Anadyr",
+            }
+        ),
+        "TJ": frozenset({"Asia/Dushanbe"}),
+        "TM": frozenset({"Asia/Ashgabat"}),
+        "UA": frozenset({"Europe/Kyiv", "Europe/Simferopol"}),
+        "UZ": frozenset({"Asia/Samarkand", "Asia/Tashkent"}),
+        # Европа
         "DE": frozenset({"Europe/Berlin"}),
         "ES": frozenset({"Europe/Madrid", "Atlantic/Canary"}),
         "FR": frozenset({"Europe/Paris"}),
         "GB": frozenset({"Europe/London"}),
         "IT": frozenset({"Europe/Rome"}),
-        "MX": frozenset({"America/Mexico_City", "America/Tijuana", "America/Monterrey"}),
         "NL": frozenset({"Europe/Amsterdam"}),
         "PL": frozenset({"Europe/Warsaw"}),
         "PT": frozenset({"Europe/Lisbon", "Atlantic/Madeira", "Atlantic/Azores"}),
+        # Америка
+        "BR": frozenset({"America/Sao_Paulo", "America/Manaus", "America/Fortaleza"}),
+        "CA": frozenset({"America/Toronto", "America/Vancouver", "America/Halifax"}),
+        "MX": frozenset({"America/Mexico_City", "America/Tijuana", "America/Monterrey"}),
         "US": frozenset(
             {
                 "America/New_York",

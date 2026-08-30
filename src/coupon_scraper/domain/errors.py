@@ -69,3 +69,47 @@ class InvalidPacingError(DomainError):
 
     def __init__(self, reason: str) -> None:
         super().__init__(f"ритм обращений непригоден: {reason}")
+
+
+class InvalidIdentifierError(DomainError):
+    """Идентификатор непригоден"""
+
+    def __init__(self, kind: str, reason: str) -> None:
+        super().__init__(f"{kind}: {reason}")
+
+
+class InvalidMoneyError(DomainError):
+    """Денежная величина непригодна"""
+
+    def __init__(self, reason: str) -> None:
+        super().__init__(f"денежная величина непригодна: {reason}")
+
+
+class CurrencyMismatchError(DomainError):
+    """Сравнение или сложение сумм в разных валютах"""
+
+    def __init__(self, left: str, right: str) -> None:
+        super().__init__(f"нельзя сопоставлять {left} и {right}: это разные валюты")
+
+
+class InvalidProfileError(DomainError):
+    """Профиль извлечения непригоден"""
+
+    def __init__(self, reason: str) -> None:
+        super().__init__(f"профиль извлечения непригоден: {reason}")
+
+
+class InvalidOfferError(DomainError):
+    """Предложение противоречиво само себе"""
+
+    def __init__(self, reason: str) -> None:
+        super().__init__(f"предложение непригодно: {reason}")
+
+
+class IllegalTransitionError(DomainError):
+    """Переход состояния, которого в жизненном цикле задачи нет"""
+
+    def __init__(self, current: str, action: str) -> None:
+        super().__init__(f"задача в состоянии {current}: действие {action!r} недопустимо")
+        self.current = current
+        self.action = action

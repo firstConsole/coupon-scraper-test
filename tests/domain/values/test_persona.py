@@ -3,12 +3,18 @@
 from __future__ import annotations
 
 from typing import Any
+from zoneinfo import available_timezones
 
 import pytest
 
 from coupon_scraper.domain.errors import InconsistentPersonaError
 from coupon_scraper.domain.values.geo import Country
-from coupon_scraper.domain.values.persona import Locale, Persona, Screen
+from coupon_scraper.domain.values.persona import (
+    COUNTRY_TIMEZONES,
+    Locale,
+    Persona,
+    Screen,
+)
 
 FONTS = ("Arial", "Helvetica", "DejaVu Sans", "Liberation Serif", "Noto Sans", "Ubuntu")
 UA = "Mozilla/5.0 (X11; Linux x86_64; rv:141.0) Gecko/20100101 Firefox/141.0"
@@ -48,6 +54,38 @@ def test_timezone_must_belong_to_the_country() -> None:
     """Испанский адрес с московским поясом заметнее любого отдельного маркера"""
     with pytest.raises(InconsistentPersonaError, match="не принадлежит стране"):
         _persona(timezone="Europe/Moscow")
+
+
+@pytest.mark.parametrize(
+    ("locale", "country", "timezone"),
+    [
+        ("ru-RU", "RU", "Europe/Moscow"),
+        ("ru-RU", "RU", "Asia/Vladivostok"),
+        ("ru-KZ", "KZ", "Asia/Almaty"),
+        ("be-BY", "BY", "Europe/Minsk"),
+        ("uk-UA", "UA", "Europe/Kyiv"),
+        ("hy-AM", "AM", "Asia/Yerevan"),
+        ("uz-UZ", "UZ", "Asia/Tashkent"),
+    ],
+)
+def test_cis_personas_are_built(locale: str, country: str, timezone: str) -> None:
+    persona = _persona(locale=Locale(locale), country=Country(country), timezone=timezone)
+
+    assert persona.timezone == timezone
+
+
+def test_timezone_of_a_neighbour_country_is_rejected() -> None:
+    """Минский пояс на казахстанском адресе — то же рассогласование, только мельче"""
+    with pytest.raises(InconsistentPersonaError, match="не принадлежит стране"):
+        _persona(locale=Locale("ru-KZ"), country=Country("KZ"), timezone="Europe/Minsk")
+
+
+def test_catalogue_names_are_real_iana_zones() -> None:
+    """Свои названия сюда не изобретаются: имена берутся из zone.tab"""
+    zones = {zone for group in COUNTRY_TIMEZONES.values() for zone in group}
+    unknown = zones - available_timezones()
+
+    assert not unknown, f"нет в базе часовых поясов: {sorted(unknown)}"
 
 
 def test_unknown_country_fails_closed() -> None:

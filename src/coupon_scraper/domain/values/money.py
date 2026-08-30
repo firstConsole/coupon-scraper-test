@@ -1,0 +1,75 @@
+from __future__ import annotations
+
+import re
+from dataclasses import dataclass
+from decimal import Decimal
+from typing import Final
+
+from coupon_scraper.domain.errors import CurrencyMismatchError, InvalidMoneyError
+
+_CURRENCY = re.compile(r"^[A-Z]{3}$")
+MAX_PERCENT: Final = Decimal(100)
+
+
+@dataclass(frozen=True, slots=True)
+class Currency:
+    """Код валюты по ISO 4217."""
+
+    code: str
+
+    def __post_init__(self) -> None:
+        if _CURRENCY.match(self.code) is None:
+            raise InvalidMoneyError(f"код валюты {self.code!r} не вида EUR")
+
+    @classmethod
+    def parse(cls, raw: str) -> Currency:
+        return cls(raw.strip().upper())
+
+    def __str__(self) -> str:
+        return self.code
+
+
+@dataclass(frozen=True, slots=True)
+class Money:
+    """Сумма в конкретной валюте"""
+
+    amount: Decimal
+    currency: Currency
+
+    def __post_init__(self) -> None:
+        if self.amount < 0:
+            raise InvalidMoneyError(f"отрицательная сумма {self.amount}")
+
+    def same_currency_as(self, other: Money) -> None:
+        if self.currency != other.currency:
+            raise CurrencyMismatchError(str(self.currency), str(other.currency))
+
+    def is_at_most(self, other: Money) -> bool:
+        self.same_currency_as(other)
+        return self.amount <= other.amount
+
+    def discount_from(self, face_value: Money) -> Percentage:
+        """Насколько цена ниже номинала. Основная величина в каталоге гифт-карт."""
+        self.same_currency_as(face_value)
+
+        if face_value.amount <= 0:
+            raise InvalidMoneyError("номинал нулевой — скидка от него не считается")
+
+        return Percentage((face_value.amount - self.amount) / face_value.amount * MAX_PERCENT)
+
+    def __str__(self) -> str:
+        return f"{self.amount} {self.currency}"
+
+
+@dataclass(frozen=True, slots=True)
+class Percentage:
+    """Доля в процентах"""
+
+    value: Decimal
+
+    def __post_init__(self) -> None:
+        if not 0 <= self.value <= MAX_PERCENT:
+            raise InvalidMoneyError(f"доля {self.value} вне диапазона 0–100")
+
+    def __str__(self) -> str:
+        return f"{self.value}%"
