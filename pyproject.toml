@@ -12,6 +12,7 @@ requires-python = ">=3.13,<4.0"
 fastapi = "0.141.1"
 pydantic = "2.13.4"
 pydantic-settings = "2.14.2"
+structlog = "^26.1.0"
 
 [tool.poetry]
 packages = [{ include = "coupon_scraper", from = "src" }]
@@ -74,7 +75,9 @@ ignore = [
 ]
 
 [tool.ruff.lint.per-file-ignores]
-"tests/**" = ["ARG", "FBT001", "FBT002", "PLR2004", "S101", "S105", "S106", "SLF"]
+# TRY301 — правило о потоке управления в проде. Тест, который нарочно бросает
+# исключение ради проверки трассировки, — ровно тот случай, где оно не про то.
+"tests/**" = ["ARG", "FBT001", "FBT002", "PLR2004", "S101", "S105", "S106", "SLF", "TRY301"]
 
 [tool.ruff.lint.pylint]
 max-args = 10
