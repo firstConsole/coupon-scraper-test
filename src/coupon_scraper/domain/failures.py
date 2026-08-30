@@ -71,3 +71,9 @@ class TargetGoneError(ScrapeError):
         super().__init__(f"{url}: страница снята с публикации ({status})")
         self.url = url
         self.status = status
+
+
+class PoolExhaustedError(ScrapeError):
+    def __init__(self, geo: str) -> None:
+        super().__init__(f"нет свободных адресов в стране {geo}")
+        self.geo = geo

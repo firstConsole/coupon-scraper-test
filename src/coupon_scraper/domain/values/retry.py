@@ -12,6 +12,7 @@ from coupon_scraper.domain.failures import (
     EndpointBannedError,
     ExtractionDriftError,
     NavigationTimeoutError,
+    PoolExhaustedError,
     ScrapeError,
     TargetGoneError,
     WrongDestinationError,
@@ -39,6 +40,7 @@ DECISIONS: Final[Mapping[type[ScrapeError], Decision]] = MappingProxyType(
         ChallengeUnsolvedError: Decision.RETRY_FRESH_PERSONA,
         WrongDestinationError: Decision.RETRY_FRESH_SESSION,
         NavigationTimeoutError: Decision.RETRY,
+        PoolExhaustedError: Decision.RETRY,
         ExtractionDriftError: Decision.DEAD_LETTER,
         TargetGoneError: Decision.DROP,
     }
