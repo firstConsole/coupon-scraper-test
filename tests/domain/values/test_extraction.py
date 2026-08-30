@@ -12,9 +12,11 @@ from coupon_scraper.domain.values.extraction import (
     FieldRule,
     FieldSource,
     FillRate,
+    OfferKind,
     RawSnapshot,
     Readiness,
 )
+from coupon_scraper.domain.values.geo import Country
 
 FIELDS = {
     "merchant": (FieldRule(source=FieldSource.PAYLOAD, path="$.merchant.name", required=True),),
@@ -33,6 +35,9 @@ def _profile(**overrides: Any) -> ExtractionProfile:
         "card_selector": ".card",
         "fields": FIELDS,
         "readiness": READINESS,
+        "offer_kind": OfferKind.GIFT_CARD,
+        "geo": Country("ES"),
+        "default_currency": "EUR",
     }
     return ExtractionProfile(**(base | overrides))
 

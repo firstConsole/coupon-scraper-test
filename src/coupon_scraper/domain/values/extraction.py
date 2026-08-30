@@ -6,9 +6,15 @@ from types import MappingProxyType
 from typing import TYPE_CHECKING
 
 from coupon_scraper.domain.errors import InvalidProfileError
+from coupon_scraper.domain.values.geo import Country  # noqa: TC001
 
 if TYPE_CHECKING:
     from collections.abc import Mapping
+
+
+class OfferKind(StrEnum):
+    GIFT_CARD = "gift_card"
+    COUPON = "coupon"
 
 
 class FieldSource(StrEnum):
@@ -56,6 +62,9 @@ class ExtractionProfile:
     card_selector: str
     fields: Mapping[str, tuple[FieldRule, ...]]
     readiness: Readiness
+    offer_kind: OfferKind
+    geo: Country
+    default_currency: str
     min_fill_rate: float = 0.9
     code_behind_click: bool = False
     respect_robots: bool = True

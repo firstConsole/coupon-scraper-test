@@ -12,9 +12,11 @@ from coupon_scraper.domain.values.extraction import (
     ExtractionProfile,
     FieldRule,
     FieldSource,
+    OfferKind,
     RawSnapshot,
     Readiness,
 )
+from coupon_scraper.domain.values.geo import Country
 
 if TYPE_CHECKING:
     from collections.abc import Mapping
@@ -50,6 +52,9 @@ def _profile(**overrides: Any) -> ExtractionProfile:
         "card_selector": ".card",
         "fields": FIELDS,
         "readiness": Readiness(ready_selector=".card"),
+        "offer_kind": OfferKind.GIFT_CARD,
+        "geo": Country("ES"),
+        "default_currency": "EUR",
     }
     return ExtractionProfile(**(base | overrides))
 

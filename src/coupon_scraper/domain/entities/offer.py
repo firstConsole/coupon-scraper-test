@@ -1,8 +1,8 @@
 from __future__ import annotations
 
-from dataclasses import dataclass
+from dataclasses import dataclass, replace
 from enum import StrEnum
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Self
 
 from coupon_scraper.domain.errors import InvalidOfferError, NaiveMomentError
 
@@ -54,9 +54,10 @@ class Offer:
         _require_aware(self.collected_at, "collected_at")
         _require_aware(self.valid_until, "valid_until")
 
+    def with_screenshot(self, key: str) -> Self:
+        return replace(self, screenshot_key=key)
+
     def is_expired(self, now: datetime) -> bool:
-        """Сайт показывает просроченные предложения; мы собираем то, что видит человек,
-        но отличить их обязаны."""
         _require_aware(now, "now")
 
         return self.valid_until is not None and now >= self.valid_until
