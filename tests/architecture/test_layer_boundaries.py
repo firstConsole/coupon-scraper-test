@@ -46,6 +46,10 @@ FORBIDDEN_IMPORTS: dict[str, tuple[str, ...]] = {
     "application": FRAMEWORKS,
 }
 
+# Обращения к текущему времени. Домен обязан получать момент аргументом: иначе
+# карантин адреса невозможно проверить, не подождав пятнадцать минут.
+CLOCK_CALLS = frozenset({"now", "utcnow", "today", "monotonic", "perf_counter"})
+
 
 class SourceFile(NamedTuple):
     """Разобранный исходник вместе с его местом в пакете."""
@@ -154,3 +158,29 @@ def test_core_layers_stay_framework_free() -> None:
                 )
 
     assert not violations, "Фреймворк пробрался в ядро:\n" + "\n".join(violations)
+
+
+def _clock_calls(source: SourceFile) -> Iterator[str]:
+    """Ищет вызовы вида datetime.now(), time.monotonic(), date.today()."""
+    for node in ast.walk(source.tree):
+        if (
+            isinstance(node, ast.Call)
+            and isinstance(node.func, ast.Attribute)
+            and node.func.attr in CLOCK_CALLS
+        ):
+            yield f"{ast.unparse(node.func)}()"
+
+
+def test_domain_does_not_read_the_clock() -> None:
+    """Момент времени приходит в домен аргументом, а не берётся из системных часов"""
+    violations = [
+        f"  {source.path.relative_to(PACKAGE_ROOT)}: {call}"
+        for source in _iter_sources()
+        if source.layer == "domain"
+        for call in _clock_calls(source)
+    ]
+
+    assert not violations, (
+        "Домен смотрит на часы — правило станет непроверяемым без ожидания:\n"
+        + "\n".join(violations)
+    )
