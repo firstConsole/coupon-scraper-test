@@ -72,7 +72,7 @@ repos:
       - id: mypy
         name: mypy (строгая проверка типов)
         language: system
-        entry: poetry run mypy
+        entry: env -u VIRTUAL_ENV poetry run mypy
         types: [python]
         pass_filenames: false
         stages: [pre-push]
@@ -80,7 +80,7 @@ repos:
       - id: pytest
         name: pytest
         language: system
-        entry: poetry run pytest
+        entry: env -u VIRTUAL_ENV poetry run pytest
         types: [python]
         pass_filenames: false
         stages: [pre-push]

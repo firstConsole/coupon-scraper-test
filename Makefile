@@ -2,7 +2,7 @@ SHELL := /bin/bash
 .DEFAULT_GOAL := help
 
 POETRY ?= poetry
-RUN := $(POETRY) run
+RUN := env -u VIRTUAL_ENV $(POETRY) run
 IMAGE ?= coupon-scraper:dev
 
 .PHONY: help
