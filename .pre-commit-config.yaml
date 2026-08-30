@@ -1,0 +1,86 @@
+default_install_hook_types: [pre-commit, pre-push]
+default_stages: [pre-commit]
+default_language_version:
+  python: python3.13
+
+repos:
+  # Гигиена файлов
+  - repo: https://github.com/pre-commit/pre-commit-hooks
+    rev: v6.0.0
+    hooks:
+      - id: trailing-whitespace
+        args: [--markdown-linebreak-ext=md]
+        stages: [pre-commit]
+      - id: end-of-file-fixer
+        stages: [pre-commit]
+      - id: mixed-line-ending
+        args: [--fix=lf]
+      - id: check-yaml
+      - id: check-toml
+      - id: check-json
+      - id: check-merge-conflict
+      - id: check-case-conflict
+      - id: check-added-large-files
+        args: [--maxkb=512]
+        stages: [pre-commit]
+      - id: detect-private-key
+      - id: no-commit-to-branch
+        args: [--branch, master, --branch, main]
+
+  # Линт и формат
+  - repo: https://github.com/astral-sh/ruff-pre-commit
+    rev: v0.16.5
+    hooks:
+      - id: ruff-check
+        args: [--fix]
+      - id: ruff-format
+
+  # Секреты
+  - repo: https://github.com/gitleaks/gitleaks
+    rev: v8.30.0
+    hooks:
+      - id: gitleaks
+
+  # Локальные хуки
+  - repo: local
+    hooks:
+      - id: forbid-dotenv
+        name: не коммитить .env (можно только .env.example)
+        language: fail
+        entry: >-
+          Файл с секретами попал в коммит. В репозиторий кладём только
+          .env.example с пустыми значениями.
+        files: '^\.env(\..*)?$'
+        exclude: '^\.env\.example$'
+
+      - id: forbid-collected-data
+        name: не коммитить собранное с чужих сайтов
+        language: fail
+        entry: >-
+          Снимки карточек и форензика — охраняемый чужой материал и место им
+          в объектном хранилище, а не в git. См. раздел о границах в README.
+        files: '^(data|screenshots|forensics)/'
+
+      - id: forbid-browser-profiles
+        name: не коммитить профили и сессии браузера
+        language: fail
+        entry: >-
+          Профиль браузера содержит куки и токены целевого сайта — это
+          действующий доступ, а не артефакт сборки.
+        files: '(\.session|\.sqlite|/user-data-dir/|/profiles?/)'
+
+      - id: mypy
+        name: mypy (строгая проверка типов)
+        language: system
+        entry: poetry run mypy
+        types: [python]
+        pass_filenames: false
+        stages: [pre-push]
+
+      - id: pytest
+        name: pytest
+        language: system
+        entry: poetry run pytest
+        types: [python]
+        pass_filenames: false
+        stages: [pre-push]
