@@ -1,0 +1,33 @@
+# Python
+__pycache__/
+*.py[cod]
+build/
+dist/
+*.egg-info/
+
+# Окружения
+.venv/
+venv/
+
+# Кэши инструментов
+.mypy_cache/
+.pytest_cache/
+.ruff_cache/
+.coverage
+coverage.xml
+htmlcov/
+
+# Секреты и локальные данные
+.env
+.env.*
+!.env.example
+
+# Артефакты сбора
+data/
+screenshots/
+forensics/
+
+# ОС и редакторы
+.DS_Store
+.idea/
+.vscode/
