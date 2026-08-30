@@ -1,18 +1,132 @@
 [project]
-name = "coupon-scraper-test"
+name = "coupon-scraper"
 version = "0.1.0"
-description = ""
+description = "Сбор структурированных данных и снимков карточек с агрегаторов купонов и гифт-карт"
 authors = [
-    {name = "Артамонов Алексей Викторович",email = "artamonov008@yandex.ru"}
+    { name = "Артамонов Алексей Викторович", email = "artamonov008@yandex.ru" },
 ]
 readme = "README.md"
-requires-python = ">=3.13"
-dependencies = [
-]
+requires-python = ">=3.13,<4.0"
+dependencies = []
 
 [tool.poetry]
-packages = [{include = "coupon_scraper_test", from = "src"}]
+packages = [{ include = "coupon_scraper", from = "src" }]
 
 [build-system]
 requires = ["poetry-core>=2.0.0,<3.0.0"]
 build-backend = "poetry.core.masonry.api"
+
+[tool.ruff]
+target-version = "py313"
+line-length = 100
+src = ["src", "tests"]
+extend-exclude = [".venv", "migrations"]
+
+[tool.ruff.lint]
+select = [
+    "A",      # затенение встроенных имён (list, id, type...)
+    "ARG",    # аргументы, которые никто не использует
+    "ASYNC",  # типичные грабли asyncio: блокирующие вызовы в корутинах
+    "B",      # bugbear — классические логические ловушки
+    "BLE",    # `except Exception` без разбора
+    "C4",     # comprehension'ы вместо list()/dict() поверх генератора
+    "DTZ",    # даты без таймзоны — источник плавающих багов в метриках прогона
+    "E",      # pycodestyle: ошибки
+    "ERA",    # закомментированный код
+    "F",      # pyflakes: неиспользуемое, битые импорты
+    "FBT",    # булев флаг позиционным аргументом — нечитаемо на вызове
+    "G",      # logging: f-строки вместо ленивого форматирования
+    "I",      # сортировка импортов (бывший isort)
+    "INP",    # пакет без __init__.py
+    "INT",    # gettext
+    "ISC",    # неявная склейка строк
+    "LOG",    # неправильное обращение со стандартным logging
+    "N",      # pep8-naming
+    "PERF",   # очевидные перформанс-антипаттерны
+    "PIE",    # разный мелкий мусор
+    "PL",     # pylint: сложность, магические числа, слишком много веток
+    "PT",     # стиль pytest
+    "PTH",    # pathlib вместо os.path
+    "Q",      # кавычки
+    "RET",    # лишние else после return
+    "RSE",    # `raise X()` вместо `raise X`
+    "RUF",    # правила самого ruff
+    "S",      # bandit: безопасность — для скрейпера это приоритет №1
+    "SIM",    # упрощаемые конструкции
+    "SLF",    # доступ к приватным атрибутам чужого объекта
+    "T20",    # print() в проде
+    "TC",     # импорты только для типов — в TYPE_CHECKING
+    "TID",    # запутанные относительные импорты
+    "TRY",    # антипаттерны обработки исключений
+    "UP",     # pyupgrade — синтаксис под целевую версию Python
+    "W",      # pycodestyle: предупреждения
+]
+ignore = [
+    "ISC001",
+    "TRY003",
+    "RUF001",
+    "RUF002",
+    "RUF003",
+]
+
+[tool.ruff.lint.per-file-ignores]
+"tests/**" = ["ARG", "FBT001", "FBT002", "PLR2004", "S101", "S105", "S106", "SLF"]
+
+[tool.ruff.lint.pylint]
+max-args = 10
+max-positional-args = 5
+
+[tool.ruff.lint.isort]
+known-first-party = ["coupon_scraper"]
+
+[tool.ruff.lint.flake8-tidy-imports]
+ban-relative-imports = "parents"
+
+[tool.ruff.lint.pydocstyle]
+convention = "google"
+
+[tool.ruff.format]
+quote-style = "double"
+docstring-code-format = true
+
+[tool.mypy]
+python_version = "3.13"
+files = ["src", "tests"]
+strict = true
+warn_unreachable = true
+show_error_codes = true
+pretty = true
+
+[[tool.mypy.overrides]]
+module = ["tests.*"]
+disallow_untyped_defs = false
+
+[tool.pytest.ini_options]
+minversion = "8.0"
+testpaths = ["tests"]
+addopts = "-q --strict-markers --strict-config"
+asyncio_mode = "auto"
+asyncio_default_fixture_loop_scope = "function"
+
+[tool.coverage.run]
+source = ["src/coupon_scraper"]
+branch = true
+
+[tool.coverage.report]
+show_missing = true
+skip_covered = true
+exclude_also = [
+    "if TYPE_CHECKING:",
+    "raise NotImplementedError",
+    "@(abc\\.)?abstractmethod",
+]
+
+[dependency-groups]
+dev = [
+    "ruff (>=0.16.5,<0.17.0)",
+    "mypy (>=2.3.1,<3.0.0)",
+    "pre-commit (>=4.6.2,<5.0.0)",
+    "pytest (>=9.1.1,<10.0.0)",
+    "pytest-asyncio (>=1.4.0,<2.0.0)",
+    "pytest-cov (>=7.1.0,<8.0.0)",
+]
