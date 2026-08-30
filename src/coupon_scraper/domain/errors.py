@@ -57,3 +57,15 @@ class EndpointRestingError(DomainError):
     def __init__(self, identity: str, until: str) -> None:
         super().__init__(f"адрес {identity} отдыхает до {until}")
         self.identity = identity
+
+
+class InconsistentPersonaError(DomainError):
+    def __init__(self, reason: str) -> None:
+        super().__init__(f"личность несогласована: {reason}")
+
+
+class InvalidPacingError(DomainError):
+    """Параметры ритма обращений, при которых он перестаёт быть ритмом"""
+
+    def __init__(self, reason: str) -> None:
+        super().__init__(f"ритм обращений непригоден: {reason}")

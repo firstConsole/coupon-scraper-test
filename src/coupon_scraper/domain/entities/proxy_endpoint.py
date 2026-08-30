@@ -1,9 +1,10 @@
 from __future__ import annotations
 
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from typing import TYPE_CHECKING, Final
 
 from coupon_scraper.domain.errors import EndpointRestingError, NaiveMomentError
+from coupon_scraper.domain.values.pacing import Concurrency
 
 if TYPE_CHECKING:
     from datetime import datetime, timedelta
@@ -29,6 +30,7 @@ class ProxyEndpoint:
     spent: int = 0
     resting_until: datetime | None = None
     strikes: int = 0
+    concurrency: Concurrency = field(default_factory=Concurrency)
 
     @property
     def remaining(self) -> int:
@@ -56,6 +58,7 @@ class ProxyEndpoint:
     def quarantine(self, now: datetime) -> None:
         """Замечен бан: адрес уходит с растущей паузой."""
         self.strikes += 1
+        self.concurrency.report_refusal()
         self._rest(now, self.budget.cooldown * 2 ** min(self.strikes, MAX_STRIKE_POWER))
 
     def _rest(self, now: datetime, duration: timedelta) -> None:
