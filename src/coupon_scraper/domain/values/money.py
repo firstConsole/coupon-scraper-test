@@ -2,13 +2,16 @@ from __future__ import annotations
 
 import re
 from dataclasses import dataclass
-from decimal import Decimal
+from decimal import Decimal, InvalidOperation
 from typing import Final
 
 from coupon_scraper.domain.errors import CurrencyMismatchError, InvalidMoneyError
 
 _CURRENCY = re.compile(r"^[A-Z]{3}$")
+_NOT_A_NUMBER = re.compile(r"[^\d.,\-]")
+_THOUSANDS = re.compile(r"(?<=\d)[ \u00a0\u202f](?=\d)")
 MAX_PERCENT: Final = Decimal(100)
+GROUP_SIZE: Final = 3
 
 
 @dataclass(frozen=True, slots=True)
@@ -29,6 +32,27 @@ class Currency:
         return self.code
 
 
+def _to_decimal(raw: str) -> Decimal:
+    cleaned = _THOUSANDS.sub("", _NOT_A_NUMBER.sub("", raw.strip()))
+
+    if not cleaned:
+        raise InvalidMoneyError(f"в строке {raw!r} нет числа")
+
+    dot, comma = cleaned.rfind("."), cleaned.rfind(",")
+
+    if dot >= 0 and comma >= 0:
+        fractional, thousands = (".", ",") if dot > comma else (",", ".")
+        cleaned = cleaned.replace(thousands, "").replace(fractional, ".")
+    elif comma >= 0:
+        tail = len(cleaned) - comma - 1
+        cleaned = cleaned.replace(",", "" if tail == GROUP_SIZE else ".")
+
+    try:
+        return Decimal(cleaned)
+    except InvalidOperation as error:
+        raise InvalidMoneyError(f"строка {raw!r} не разбирается как сумма") from error
+
+
 @dataclass(frozen=True, slots=True)
 class Money:
     """Сумма в конкретной валюте"""
@@ -39,6 +63,10 @@ class Money:
     def __post_init__(self) -> None:
         if self.amount < 0:
             raise InvalidMoneyError(f"отрицательная сумма {self.amount}")
+
+    @classmethod
+    def parse(cls, amount: str, currency: str) -> Money:
+        return cls(_to_decimal(amount), Currency.parse(currency))
 
     def same_currency_as(self, other: Money) -> None:
         if self.currency != other.currency:

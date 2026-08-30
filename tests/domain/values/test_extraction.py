@@ -17,9 +17,12 @@ from coupon_scraper.domain.values.extraction import (
 )
 
 FIELDS = {
-    "merchant": FieldRule(source=FieldSource.PAYLOAD, path="$.merchant.name", required=True),
-    "face_value": FieldRule(source=FieldSource.PAYLOAD, path="$.faceValue", required=True),
-    "terms": FieldRule(source=FieldSource.DOM, path=".card__terms"),
+    "merchant": (FieldRule(source=FieldSource.PAYLOAD, path="$.merchant.name", required=True),),
+    "face_value": (
+        FieldRule(source=FieldSource.PAYLOAD, path="$.faceValue", required=True),
+        FieldRule(source=FieldSource.EMBEDDED, path="$.props.card.faceValue", required=True),
+    ),
+    "terms": (FieldRule(source=FieldSource.DOM, path=".card__terms"),),
 }
 READINESS = Readiness(data_url_pattern="/api/v1/cards/*", ready_selector=".card")
 
@@ -46,9 +49,23 @@ def test_fields_are_frozen_after_construction() -> None:
         profile.fields["merchant"] = FIELDS["terms"]  # type: ignore[index]
 
 
+def test_field_may_have_several_places_in_order() -> None:
+    """Номинал обычно в ответе сайта, но после переезда на серверный рендер —
+    вшит в документ; один источник на поле ломал бы сбор целиком"""
+    assert len(_profile().fields["face_value"]) == 2
+
+
+def test_field_without_places_is_refused() -> None:
+    with pytest.raises(InvalidProfileError, match="без единого места поиска"):
+        _profile(fields={**FIELDS, "merchant": ()})
+
+
 def test_profile_without_required_fields_is_refused() -> None:
     """Полнота была бы всегда единицей, и дрейф вёрстки остался бы незамеченным"""
-    relaxed = {name: FieldRule(source=rule.source, path=rule.path) for name, rule in FIELDS.items()}
+    relaxed = {
+        name: tuple(FieldRule(source=rule.source, path=rule.path) for rule in lookup)
+        for name, lookup in FIELDS.items()
+    }
 
     with pytest.raises(InvalidProfileError, match="обязательного поля"):
         _profile(fields=relaxed)

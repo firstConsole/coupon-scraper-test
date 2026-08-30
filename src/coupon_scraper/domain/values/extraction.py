@@ -54,7 +54,7 @@ class Readiness:
 class ExtractionProfile:
     version: int
     card_selector: str
-    fields: Mapping[str, FieldRule]
+    fields: Mapping[str, tuple[FieldRule, ...]]
     readiness: Readiness
     min_fill_rate: float = 0.9
     code_behind_click: bool = False
@@ -70,6 +70,10 @@ class ExtractionProfile:
         if not self.fields:
             raise InvalidProfileError("профиль без полей ничего не извлекает")
 
+        for name, lookup in self.fields.items():
+            if not lookup:
+                raise InvalidProfileError(f"поле {name!r} без единого места поиска")
+
         if not self.required_fields:
             raise InvalidProfileError(
                 "нет ни одного обязательного поля — полнота всегда будет единицей "
@@ -83,7 +87,10 @@ class ExtractionProfile:
 
     @property
     def required_fields(self) -> frozenset[str]:
-        return frozenset(name for name, rule in self.fields.items() if rule.required)
+        """Поле обязательно, если обязательным объявлено хотя бы одно его место."""
+        return frozenset(
+            name for name, lookup in self.fields.items() if any(rule.required for rule in lookup)
+        )
 
 
 @dataclass(frozen=True, slots=True)
