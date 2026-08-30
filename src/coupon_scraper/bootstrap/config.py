@@ -292,17 +292,42 @@ class Settings(BaseSettings):
                     yield f"{section_name.upper()}__{field_name.upper()}"
 
 
-def load_settings() -> Settings:
-    """Собирает конфигурацию или объясняет, почему не может.
+def _env_name(location: tuple[Any, ...]) -> str:
+    return "__".join(str(part).upper() for part in location) or "корень"
 
-    Сообщение называет переменные, но никогда — их значения: текст ошибки уходит
-    в логи, в задачи и в чаты.
-    """
+
+def _variables_behind(location: tuple[Any, ...]) -> list[str]:
+    """Разворачивает отсутствующую секцию в список переменных, которых не хватает"""
+    if len(location) != 1:
+        return [_env_name(location)]
+
+    field = Settings.model_fields.get(str(location[0]))
+    annotation = field.annotation if field is not None else None
+
+    if not (isinstance(annotation, type) and issubclass(annotation, BaseModel)):
+        return [_env_name(location)]
+
+    return [
+        _env_name((*location, name))
+        for name, nested in annotation.model_fields.items()
+        if nested.is_required()
+    ] or [_env_name(location)]
+
+
+def _readable(message: str) -> str:
+    return "не задано" if message == "Field required" else message
+
+
+def load_settings() -> Settings:
+    """Собирает конфигурацию или объясняет, почему не может"""
     try:
         return Settings()  # type: ignore[call-arg]
     except ValidationError as error:
-        problems = "\n".join(
-            f"  {'__'.join(str(part).upper() for part in issue['loc']) or 'корень'}: {issue['msg']}"
-            for issue in error.errors()
+        problems = sorted(
+            {
+                f"  {name}: {_readable(str(issue['msg']))}"
+                for issue in error.errors()
+                for name in _variables_behind(tuple(issue["loc"]))
+            }
         )
-        raise ConfigurationError(f"конфигурация непригодна:\n{problems}") from None
+        raise ConfigurationError("конфигурация непригодна:\n" + "\n".join(problems)) from None
